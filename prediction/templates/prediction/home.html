@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <!-- Upload form. Note enctype attribute! -->
+    <form action="{% url 'prediction'%}" method="POST" id="eula-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-25">
+                <label for="model_name">Model to use</label>
+            </div>
+            <div class="col-75">
+                <select form="eula-form" name="model_name" id="model_name">
+                {% for model in models %}
+                    <option value="{{model}}" id="{{model}}">{{ model }}</option>
+                {% endfor %}
+                </select>
+                <!--
+                <input list="models" id="model" name="model_namem" placeholder="Your model...">
+                    <datalist id="models">		
+                    {% for model in models %}
+                        <option value="{{ model }}">
+                    {% endfor %}
+                    </datalist>  
+                -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-25">
+                <label for="subject">Your End-User Licence Agreement</label>
+            </div>
+            <div class="col-75">
+                <textarea id="eula-textarea" name="eula" placeholder="Eula content.." style="height:200px">
+                    {{content}}
+                </textarea>
+                <div class="row prediction-file">
+                    <div class="col-25">
+                            From file                                          
+                    </div>
+                    <div class="col-27">
+                        {{ form.docfile.errors }}
+                        {{ form.docfile }}     
+                        <span class="fas fa-file-alt fa-lg"></span>
+                        <span class="fas fa-file-word fa-lg"></span> 
+                        <span class="fas fa-file-pdf fa-lg"></span>  
+                        <span id="message" style="color: red;" class="fas">{{message}}</span>                                     
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row prediction-output">
+            <div class="col-25">
+                <label for="prediction">Prediction</label>
+            </div>
+            <div class="col-75">
+                <input type="text" id="prediction" name="prediction" placeholder="Output..." value="{{ output }}">
+            </div>
+        </div>
+            
+        <div class="row">
+            <input type="submit" id="submit-boutton" value="Submit"/>
+        </div>
+    </form>
+</div>
+{% endblock %}
