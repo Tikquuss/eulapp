@@ -1,6 +1,6 @@
 import pickle
-import torch
-import transformers as tfm
+#import torch
+#import transformers as tfm
 import numpy as np
 import re
 import nltk
@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 REPLACE_BY_SPACE_RE = re.compile(r'[/(){}\[\]\|@,;]') 
 BAD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
 STOPWORDS = set(stopwords.words('english'))
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 production = pickle.load(open(r"prediction/production.pth", 'rb'))
 
@@ -27,15 +27,15 @@ classifier_bert = production["classifier_bert"]
 # model_class, tokenizer_class, pretrained_weights = (tfm.DistilBertModel, tfm.DistilBertTokenizer, 'distilbert-base-uncased')
 
 ## For BERT :
-model_class, tokenizer_class, pretrained_weights = (tfm.BertModel, tfm.BertTokenizer, 'bert-base-uncased')
+#model_class, tokenizer_class, pretrained_weights = (tfm.BertModel, tfm.BertTokenizer, 'bert-base-uncased')
 
 # Load pretrained model/tokenizer
-tokenizer = tokenizer_class.from_pretrained(pretrained_weights)
+#tokenizer = tokenizer_class.from_pretrained(pretrained_weights)
 #max_input_length = tokenizer.max_model_input_sizes['distilbert-base-uncased']
-max_input_length = tokenizer.max_model_input_sizes['bert-base-uncased']
+#max_input_length = tokenizer.max_model_input_sizes['bert-base-uncased']
 
-model = model_class.from_pretrained(pretrained_weights)
-model = model.to(device)
+#model = model_class.from_pretrained(pretrained_weights)
+#model = model.to(device)
 
 def text_prepare(text):
     """
@@ -72,7 +72,7 @@ def tfidf_predict(eula):
     return "EULA acceptable" if output == 1 else "EULA unacceptable"
 
 def bert_predict(eula):
-  
+  """
   tokens = tokenizer.tokenize(eula)
   tokens = tokens[:max_input_length-2]
   init_token_idx = tokenizer.cls_token_id
@@ -85,11 +85,9 @@ def bert_predict(eula):
   vec = pooled_output[:,0,:].cpu().numpy()
   output = classifier_bert.predict(vec)[0]
   return "EULA acceptable" if output == 1 else "EULA unacceptable"
-  
+  """
   # todo 
-  #return tfidf_predict(eula)
-  
-
+  return tfidf_predict(eula)
 
 def predict(model_name, eula):
   
