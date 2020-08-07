@@ -11,7 +11,10 @@ import json, os, pickle
 
 supported_extension = [".txt", ".md"] 
 template_name="prediction/home.html"
-context = {"models":["Bag of word", "TD-IDF", "BERT"], "defaut_model":"TD-IDF", "message": ""}
+context = {"models":["Bag of word", "TD-IDF", 
+            #"BERT"
+            ], 
+            "defaut_model":"TD-IDF", "message": ""}
 
 def home(request):
     context.update({"at_home":True, "succes": False, "form" : DocumentForm})  
