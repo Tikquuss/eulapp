@@ -1,4 +1,4 @@
-Use the application by directly following this link : foo.html
+Use the application by directly following this link : https://whispering-cove-26674.herokuapp.com/
 
 # Dependencies
 * django
