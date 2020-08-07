@@ -1,6 +1,6 @@
 import pickle
-import torch
-import transformers as tfm
+#import torch
+#import transformers as tfm
 import numpy as np
 import re
 import nltk
@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 REPLACE_BY_SPACE_RE = re.compile(r'[/(){}\[\]\|@,;]') 
 BAD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
 STOPWORDS = set(stopwords.words('english'))
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 production = pickle.load(open(r"prediction\production.pth", 'rb'))
 
