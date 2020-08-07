@@ -85,11 +85,12 @@ def bert_predict(eula):
   vec = pooled_output[:,0,:].cpu().numpy()
   output = classifier_bert.predict(vec)[0]
   return "EULA acceptable" if output == 1 else "EULA unacceptable"
-  """
-  # todo 
-  return tfidf_predict(eula)
-  """
   
+  # todo 
+  #return tfidf_predict(eula)
+  
+
+
 def predict(model_name, eula):
   
   if model_name == "Bag of word":
