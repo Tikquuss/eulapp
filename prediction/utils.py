@@ -12,7 +12,7 @@ BAD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
 STOPWORDS = set(stopwords.words('english'))
 #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-production = pickle.load(open(r"prediction\production.pth", 'rb'))
+production = pickle.load(open(r"prediction/production.pth", 'rb'))
 
 #requirements 
 WORDS_TO_INDEX = production["WORDS_TO_INDEX"]
