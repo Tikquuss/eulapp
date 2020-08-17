@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <!-- Upload form. Note enctype attribute! action="{% url 'prediction'%}" method="POST" -->
+    <form  id="eula-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-25">
+                <label for="model_name">Model to use</label>
+            </div>
+            <div class="col-75">
+                <select form="eula-form" name="model_name" id="model_name">
+                {% for model in models %}
+                    <option value="{{model}}" id="{{model}}">{{ model }}</option>
+                {% endfor %}
+                </select>
+                <!--
+                <input list="models" id="model" name="model_name" placeholder="Your model...">
+                    <datalist id="models">		
+                    {% for model in models %}
+                        <option value="{{ model }}">
+                    {% endfor %}
+                    </datalist>  
+                -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-25">
+                <label for="subject">Your End-User Licence Agreement</label>
+            </div>
+            <div class="col-75">
+                <textarea id="eula-textarea" name="eula" placeholder="Eula content.." style="height:200px">
+                    {{content}}
+                </textarea>
+                <div class="row prediction-file">
+                    <div class="col-25">
+                        From file                                          
+                    </div>
+                    <div class="col-27">
+                        {{ form.docfile.errors }}
+                        {{ form.docfile }}     
+                        <span class="fas fa-file-alt fa-lg"></span>
+                        <span class="fas fa-file-word fa-lg"></span> 
+                        <span class="fas fa-file-pdf fa-lg"></span>  
+                        <span id="message" style="color: red;" class="fas">{{message}}</span>                                     
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row prediction-output">
+            <div class="col-25">
+                <label for="prediction">Prediction</label>
+            </div>
+            <div class="col-75">
+                <input type="text" id="prediction" name="prediction" placeholder="Output..." value="{{ output }}">
+            </div>
+        </div>
+        <div class="row">
+            <input type="submit" id="submit-boutton" value="Submit"/>
+        </div>
+    </form>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != "") {
+            var cookies = document.cookie.split(";");
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == name + "=") {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $(document).ready(function(){
+        $.ajaxSetup({
+            headers: {"X-CSRFToken": getCookie("csrftoken") }
+        });
+    });
+
+    $('#id_docfile').change(handleFileSelect);
+
+    var data_dic = {};
+
+    function createReaderHandler(name) {
+        return function(ev) {
+            data_dic[name] = ev.target.result;
+        };
+        console.log(data_dic)
+    }
+
+    function handleFileSelect(ev) {
+        console.log(data_dic, "============")
+        console.log(ev.target.files, "============")
+        var files = ev.target.files; // FileList object
+        // Loop through the FileList
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i],
+                name = file.name || file.fileName,
+                reader = new FileReader();
+            reader.onload = createReaderHandler(name);
+            reader.readAsText(file);
+        }
+    }
+
+    $(document).on('submit', '#eula-form', function(){ 
+
+        console.log(data_dic, "11111111111111111")
+        console.log($(this).serialize())
+        $.ajax({ 
+            type: "POST", 
+            url: 'prediction', 
+            data: {'form': $(this).serialize(), 'other' : data_dic}, 
+            context: this, 
+            beforeSend: function(xhr){
+                xhr.setRequestHeader("X-CSRFToken", $('input[name=csrfmiddlewaretoken]').val());
+            },
+            success: function(data, status) {
+                $("#eula-form").trigger("reset"); 
+                console.log(data)
+                //data = JSON.parse(data)
+                $("#eula-textarea").val(data['content'] + "\n"+data["output"])
+                $("#message").text(data["message"] + "ff")
+                console.log($("#prediction").val(), "============")
+                ///if(data["succes"]){
+                    console.log($("#prediction"), data["output"])
+                    $("#prediction").val(data["output"] + 'ff')
+                //}
+                console.log($("#prediction").val(), "============")
+                console.log(document.getElementById('prediction').value, "============")
+
+                //$("#form-group-prediction").prepend("")
+            }, 
+            error : function(xhr, errmsg, err) {
+                console.log(xhr.status + " : " + xhr.responseText); 
+            }
+        }); 
+        return false; 
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1 @@
+web: gunicorn eula_app.wsgi

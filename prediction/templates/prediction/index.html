@@ -1,0 +1,210 @@
+{% extends 'test.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Masthead-->
+    <header class="masthead">
+        <div class="container">
+            <div class="masthead-subheading">
+                Our AI solution will review end-user license agreements (EULA) for terms and conditions that 
+                are unacceptable to the government!
+            </div>
+            <div class="masthead-heading text-uppercase">
+                It is a pleasure to count you among our users.
+            </div> 
+            <a class="btn btn-primary btn-xl text-uppercase js-scroll-trigger" href="{% url 'prediction_interface'%}">Give it a try</a>
+        </div>
+    </header>
+    <!--
+    <section class="page-section" id="prediction">
+        <div class="container">
+            <div class="text-center"> 
+                <h2 class="section-heading text-uppercase">How it works?</h2>-->
+                <!-- carousel --><!--
+                <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                    </ol>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <h3 class="section-subheading text-muted">Choose your model</h3>
+                        </div>
+                        <div class="carousel-item">
+                            <h3 class="section-subheading text-muted">Fill the text box below with your license information, or select it from a pdf, docx, txt or markdown file.</h3>
+                        </div>
+                        <div class="carousel-item">
+                            <h3 class="section-subheading text-muted">Leave the rest to our model</h3>
+                        </div>
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>-->
+                <!-- End carousel -->
+                <!-- Form -->
+                <!-- 
+                <form id="eula-form" name="sentMessage" novalidate="novalidate"
+                    action="{% url 'prediction'%}" method="POST" enctype="multipart/form-data"
+                >
+                --><!-- 
+                <form id="eula-form" name="sentMessage" novalidate="novalidate" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="model_name">Model to use</label>
+                        <select form="eula-form" name="model_name" id="model_name" class="selectpicker form-control" data-width="auto">
+                            {% for model in models %}
+                                <option value="{{model}}" id="{{model}}">{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row align-items-stretch mb-5">
+                        <div class="col-md-12">
+                            <label for="eula-textarea">Eula content</label>
+                            <div class="form-group form-group-textarea mb-md-0">
+                                <textarea 
+                                    class="form-control" 
+                                    id="eula-textarea" 
+                                    name="eula"
+                                    placeholder="Your Eula content *" 
+                                    data-validation-required-message="Please enter a content."
+                                    rows="7">
+                                    {{content}}
+                                </textarea>
+                                <!--
+                                <div class="form-control" id="message" contenteditable="true" 
+                                    style="border: 1px solid gray; height: 25em; overflow-y: scroll;"
+                                    placeholder="Your Eula content *" 
+                                    data-validation-required-message="Please enter a message."   
+                                >
+                                --><!--
+                                <p class="help-block text-danger"></p>
+                            </div>
+                            <div class="row align-items-stretch mb-5">
+                                <div class="col-md-1">
+                                    <label for="id_docfile">From file</label>
+                                </div>
+                                <div class="col-md-3">
+                                    {{ form.docfile.errors }}
+                                    {{ form.docfile }}     
+                                </div>
+                                <div class="col-md-2">
+                                    <span class="fas fa-file-alt fa-lg"></span>
+                                    <span class="fas fa-file-word fa-lg"></span> 
+                                    <span class="fas fa-file-pdf fa-lg"></span>  
+                                    <p id="message" style="color: red;" class="fas">ddd</p>  
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    --><!--
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="prediction">Prediction</label>
+                        </div>
+                        <div class="col-md-8">
+                            <input 
+                                class="form-control" type="text" id="prediction1" 
+                                name="prediction" placeholder="Output..." value="">
+                                <p class="help-block text-danger"></p>
+                        </div>
+                    </div>
+                    --><!--
+                    <div class="text-center">
+                        <div id="success"></div>
+                        <input class="btn btn-primary btn-xl text-uppercase" type="submit" id="submit-boutton" value="Submit"/>
+                    </div>
+                </form>
+                --><!-- End form --><!-- 
+            </div>
+        </div>
+    </section>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != "") {
+                var cookies = document.cookie.split(";");
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        $(document).ready(function(){
+            $.ajaxSetup({
+                headers: {"X-CSRFToken": getCookie("csrftoken") }
+            });
+        });
+
+        $('#id_docfile').change(handleFileSelect);
+
+        var data = {};
+
+        function createReaderHandler(name) {
+            return function(ev) {
+                data[name] = ev.target.result;
+            };
+            console.log(data)
+        }
+
+        function handleFileSelect(ev) {
+            console.log(data, "============")
+            var files = ev.target.files; // FileList object
+            // Loop through the FileList
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i],
+                    name = file.name || file.fileName,
+                    reader = new FileReader();
+
+                reader.onload = createReaderHandler(name);
+                reader.readAsText(file);
+            }
+        }
+
+        $(document).on('submit', '#eula-form', function(){ 
+            
+            $.ajax({ 
+                type: "POST", 
+                url: 'prediction', 
+                data: $(this).serialize(), 
+                context: this, 
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader("X-CSRFToken", $('input[name=csrfmiddlewaretoken]').val());
+                },
+                success: function(data, status) {
+                    $("#eula-form").trigger("reset"); 
+                    console.log(data)
+                    //data = JSON.parse(data)
+                    $("#eula-textarea").val(data['content'] + "\n"+data["output"])
+                    $("#message").text(data["message"] + "ff")
+                    console.log($("#prediction").val(), "============")
+                    ///if(data["succes"]){
+                        console.log($("#prediction"), data["output"])
+                        $("#prediction").val(data["output"] + 'ff')
+                    //}
+                    console.log($("#prediction").val(), "============")
+                    console.log(document.getElementById('prediction').value, "============")
+
+                    //$("#form-group-prediction").prepend("")
+                }, 
+                error : function(xhr, errmsg, err) {
+                    console.log(xhr.status + " : " + xhr.responseText); 
+                }
+            }); 
+            return false; 
+        });
+    </script>
+{% endblock %}

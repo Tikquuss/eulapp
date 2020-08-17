@@ -1,0 +1,387 @@
+{% extends 'test.html' %}
+{% load static %}
+
+{% block content %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <section class="page-section" id="prediction">
+        <div class="container">
+            <div class="text-center"> 
+                <h2 class="section-heading text-uppercase">How it works?</h2>
+                <!-- carousel -->
+                <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                    </ol>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <h3 class="section-subheading text-muted">Choose your model</h3>
+                        </div>
+                        <div class="carousel-item">
+                            <h3 class="section-subheading text-muted">Fill the text box below with your license information, or select it from a pdf, docx, txt or markdown file.</h3>
+                        </div>
+                        <div class="carousel-item">
+                            <h3 class="section-subheading text-muted">Leave the rest to our model</h3>
+                        </div>
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+                <!-- End carousel -->
+                <!-- Form -->
+                <link href="https://fr.allfont.net/allfont.css?fonts=open-sans" rel="stylesheet" type="text/css" />
+                <style>
+                    #eula-form {
+                        font-family: 'Open Sans', arial !important; /*palatino linotype , 'Open Sans'*/
+                        font-style: normal !important;
+                        font-weight: 500 !important;
+                        font-size: 24px !important;
+                        line-height: 170% !important;
+                        color: #1A1D1F !important;
+                    }
+                </style>
+                <!--
+                   <form id="eula-form" name="sentMessage" novalidate="novalidate"
+                    action="{% url 'prediction'%}" method="POST" enctype="multipart/form-data"
+                > 
+            -->
+                
+                <form id="eula-form" name="sentMessage" novalidate="novalidate" enctype="multipart/form-data"
+                >
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="model_name" class="custom-select-label">Model to use</label>
+                        <select form="eula-form" 
+                                name="model_name" 
+                                id="model_name" 
+                                class="selectpicker form-control custom-select-lg" 
+                                data-width="auto">
+                            {% for model in models %}
+                                <option value="{{model}}" id="{{model}}">{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row align-items-stretch mb-5">
+                        <div class="col-md-12">
+                            <label for="eula-textarea">Eula content</label>
+                            <div class="form-group form-group-textarea mb-md-0">
+                                <textarea 
+                                    class="form-control" 
+                                    id="eula-textarea" 
+                                    name="eula"
+                                    placeholder="Your Eula content *" 
+                                    data-validation-required-message="Please enter a content."
+                                    rows="7"
+                                ></textarea>
+                                <!--
+                                <div class="form-control" id="message" contenteditable="true" 
+                                    style="border: 1px solid gray; height: 25em; overflow-y: scroll;"
+                                    placeholder="Your Eula content *" 
+                                    data-validation-required-message="Please enter a message."   
+                                >
+                                -->
+                                <p class="help-block text-danger"></p>
+                            </div>
+
+                            <style>
+                                .to_pad {
+                                    padding :0.5em !important;
+                                }   
+                            </style>
+
+                            <div class="row align-items-stretch mb-5 to_pad">
+                                <!--
+                                <div class="col-md-2">
+                                    <label for="id_docfile">From file</label>
+                                </div>
+                                 -->
+                                <div class="col-md-5 custom-file">
+                                    {{ form.docfile.errors }}
+                                    {{ form.docfile }}
+                                    <label class="custom-file-label" for="id_docfile">From file</label>
+                                    <!--
+                                    <input class="form-control" type="file" id="id_docfile" name="docfile">    
+                                    -->     
+                                </div>
+                                <style>
+                                    .fa-file {
+                                        padding-top: 2%;
+                                    }
+                                </style>
+                                <div class="col-md-3">
+                                    <div class="row">
+                                        <div class="col-md-2 fa-file" id=".txt">
+                                            <span class="fas fa-file-alt fa-lg"></span>
+                                        </div>  
+                                        <div class="col-md-2 fa-file" id="docx,.doc">
+                                            <span class="fas fa-file-word fa-lg"></span> 
+                                        </div>
+                                        <div class="col-md-2 fa-file" id=".pdf">
+                                            <span class="fas fa-file-pdf fa-lg"></span> 
+                                        </div>
+                                        <div class="col-md-6">
+                                            
+                                            <p id="message" style="color: red;" class="fas"></p>  
+                                            
+                                        </div>
+                                    </div> 
+                                    
+                                </div>
+                                <style>
+                                    #submit-boutton {
+                                        height: 50px !important; 
+                                        padding-top :6%;
+                                    }
+                                </style>
+                                <div class="col-md-2">
+                                    <div class="text-center">
+                                        <div id="success"></div>
+                                        <input class="btn btn-primary btn-xl text-uppercase" type="submit" id="submit-boutton" value="Submit"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <!-- End form -->
+            </div>
+        </div>
+        <style>            
+            .output {
+                font: 1rem 'Fira Sans', sans-serif;
+            }
+
+            blockquote {
+                background: #eee;
+                border-radius: 5px;
+                margin: 16px 0;
+            }
+
+            blockquote p {
+                padding: 0.5em /*15px*/;
+            }
+
+            cite {
+                margin: 16px 32px;
+            }
+
+            blockquote p::before {
+                content: '\201C';
+            }
+
+            blockquote p::after {
+                content: '\201D';
+            }
+
+            [contenteditable='true'] {
+                caret-color: red;
+            }
+        </style>
+        <!--
+        {% for output, cont in html %}
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <blockquote contenteditable="true">
+                    <p class="add"> {{cont}} </p>
+                </blockquote>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+        <div class="row prediction-row">
+            <div class="col-md-1"></div>
+            <div class="col-md-4">
+                <label for="prediction">Prediction</label>
+            </div>
+            <div class="col-md-3">
+                <input 
+                    class="form-control" type="text" 
+                    name="prediction" placeholder="Output..." value="{{ output }}">
+                <p class="help-block text-danger"></p>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+        {% endfor %}
+        -->
+        <div id="clonable_parent">
+            <div class="clonable">
+                <div class="row">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10">
+                        <blockquote contenteditable="true">
+                            <p class="add"></p>
+                        </blockquote>
+                    </div>
+                    <div class="col-md-1"></div>
+                </div>
+                <div class="row prediction-row">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-2">
+                        <label for="prediction">Acceptability</label>
+                    </div>
+                    <div class="col-md-2">
+                        <input 
+                            class="form-control prediction" type="text" 
+                            name="prediction" placeholder="Output..." value="">
+                        <p class="help-block text-danger"></p>
+                    </div>
+                    <div class="col-md-2"></div>
+                    <div class="col-md-2">
+                        <label for="prediction">Unacceptability</label>
+                    </div>
+                    <div class="col-md-2">
+                        <input 
+                            class="form-control prediction" type="text" 
+                            name="prediction" placeholder="Output..." value="">
+                        <p class="help-block text-danger"></p>
+                    </div>
+                    <div class="col-md-1"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != "") {
+                var cookies = document.cookie.split(";");
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var accept_extension = "";
+        var clonable_node, clonable_node_temp, parentNode;
+
+        $(document).ready(function(){
+            /*1*/
+            clonable_node_temp = document.getElementsByClassName('clonable')[0]
+            clonable_node = clonable_node_temp.cloneNode(deep = true)
+            if (clonable_node_temp.style.display == "none"){
+                clonable_node_temp.style.display = "block"
+            }
+            parentNode = document.getElementById("clonable_parent");
+            
+            /*2*/
+            accept_extension = document.getElementById("id_docfile").getAttribute('accept')
+            
+            /*3*/
+            $.fn.serializeObject = function () {
+                var o = {};
+                var a = this.serializeArray();
+                $.each(a, function () {
+                    if (o[this.name]) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || "");
+                    } else {
+                    o[this.name] = this.value || "";
+                    }
+                });
+                return o;
+            };
+
+            /*4*/
+            $.ajaxSetup({
+                headers: {"X-CSRFToken": getCookie("csrftoken") }
+            });
+        });
+
+        // The name of the file appear on select
+        $("#id_docfile").on("change", function() {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+                                    
+        $(".fa-file").on("click", function(ev) {
+            node = document.getElementById("id_docfile")
+            b = ev.target.id
+            if (b != ""){
+                node.setAttribute('accept', b)
+                a = node.getAttribute('accept')
+                console.log("========", a, b)
+            }
+            $("#id_docfile").click()
+            document.getElementById("id_docfile").setAttribute('accept', accept_extension);
+        });
+
+        function beforesend(){
+            /*1*/
+            //$("#id_docfile").siblings(".custom-file-label").addClass("selected").html("");
+
+            /*2*/
+            parentNode.innerHTML = "";
+        }
+
+    
+        $(document).on('submit', '#eula-form', function(){ 
+    
+            var new_data = new FormData();
+            var old_data = $("#eula-form").serializeObject();
+
+            Object.keys(old_data).forEach((key) => {
+                new_data.set(key, old_data[key]);
+            });
+            
+            new_data.set("docfile", $("#id_docfile")[0].files[0]);
+            
+            $.ajax({ 
+                type: "POST",  
+                url: 'prediction', 
+                beforeSend : function() {
+                    beforesend();
+                },
+                data: new_data, 
+                processData: false,
+                contentType: false,
+                success: function(data, status) {
+                    
+                    //$("#eula-textarea").val(data['content'])
+                    //$("#message").text(data["message"])
+                    document.getElementById("message").innerText = data["message"]
+                    
+                    htmls = data["html"]
+                    if(htmls){
+                        //parentNode = document.getElementById("clonable_parent")
+                        //clonable_node = document.getElementsByClassName('clonable')[0]
+                        for (html of htmls){
+                            if(html[1] != ""){
+                                let clonedNode = clonable_node.cloneNode(deep = true)
+                                txt_node = clonedNode.getElementsByClassName('add')[0]
+                                txt_node.innerHTML = html[1]
+                                prediction_node = clonedNode.getElementsByClassName('prediction')
+                                output = html[0] 
+                                prediction_node[0].setAttribute("value", output["acceptability"])
+                                prediction_node[1].setAttribute("value", output["unacceptability"])
+                                parentNode.appendChild(clonedNode)
+                            }
+                        }
+                        clonable_node_temp.style.display = "none"
+                    }
+                }, 
+                error : function(xhr, errmsg, err) {
+                    console.log(xhr.status + " : " + xhr.responseText); 
+                }
+            }); 
+            return false; 
+        });
+    </script>
+{% endblock %}
