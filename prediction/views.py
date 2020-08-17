@@ -97,9 +97,8 @@ def prediction(request):
             try :
                 from . import methods_dic 
                 response = methods_dic[model_name](eula = content)
-                output = response["ouput"]
                 context["content"], context["html"] = [], []
-                for clause, output, meta_data in zip(content, response["ouput"], response["meta_data"]) :
+                for clause, output, meta_data in zip(content, response["output"], response["meta_data"]) :
                     if text_is_valid(text = clause) :
                         context["content"].append(clause)
                         try :
@@ -118,6 +117,7 @@ def prediction(request):
             context["succes"] = True
             context["output"] = output
             context["message"] = ""
+            print(context)
             #return TemplateResponse(request, template_name, context)
             return JsonResponse(context)
     else :
@@ -211,13 +211,14 @@ def handle_uploaded_file(filestream, destination_path : str):
 
 import random 
 import matplotlib.pyplot as plt 
-def generate_colors(n): 
+
+def generate_colors(n : int): 
     rgb_values = [] 
     hex_values = [] 
     r = int(random.random() * 256) 
     g = int(random.random() * 256) 
     b = int(random.random() * 256) 
-    step = 256 / n 
+    step = 256 / n  
     for _ in range(n): 
         r += step 
         g += step 
@@ -228,6 +229,8 @@ def generate_colors(n):
         r_hex = hex(r)[2:] 
         g_hex = hex(g)[2:] 
         b_hex = hex(b)[2:] 
+
         hex_values.append('#' + r_hex + g_hex + b_hex) 
         rgb_values.append((r,g,b)) 
+
     return rgb_values, hex_values 

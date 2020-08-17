@@ -61,6 +61,12 @@ def my_bag_of_words(text, words_to_index, dict_size):
             result_vector[words_to_index[item]] += 1
     return result_vector
 
+
+# todo
+def get_meta_data(eula):
+    from random import randint
+    return [{text : randint(0, 5) for text in clause.split()} for clause in eula]
+    
 def mybag_predict(eula):
     if type(eula) == str :
         eula = [eula]
@@ -72,12 +78,12 @@ def mybag_predict(eula):
         clause = text_prepare(clause)
         vec = my_bag_of_words(clause , WORDS_TO_INDEX, DICT_SIZE)
         a = classifier_mybag.predict([vec])[0]
-        output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
+        #output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
+        output.append({"acceptability" : int(a), "unacceptability" : int(1 - a)})
     
-    from random import randint
     response = {
-        "ouput" : output,
-        "meta_data" : [{text : randint(0, 50) for text in clause.split()} for clause in eula]
+        "output" : output,
+        "meta_data" : get_meta_data(eula)
     }
     return response
 
@@ -90,14 +96,40 @@ def tfidf_predict(eula):
     for clause in eula :
         vec = tfidf_vectorizer.transform([text_prepare(clause)])
         a = classifier_tfidf.predict(vec)[0]
-        output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
+        
+        #output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
+        output.append({"acceptability" : int(a), "unacceptability" : int(1 - a)})
 
-    from random import randint
     response = {
-        "ouput" : output,
-        "meta_data" : [{text : randint(0, 50) for text in clause.split()} for clause in eula]
+        "output" : output,
+        "meta_data" : get_meta_data(eula)
     }
     return response
+
+def get_ktrain_predict_method(ktrain_predictor):
+    def predict_method(eula):
+        if type(eula) == str :
+            eula = [eula]
+        else :
+            assert type(eula) == list
+
+        predictor = ktrain_predictor.predict_proba
+        output = []
+        for text in eula :
+            y = predictor(text)
+            if type(y) == np.ndarray :
+                output.append({"acceptability" : float(y[1]), "unacceptability" : float(y[0])})
+            else :
+                output.append({"acceptability" : int(y), "unacceptability" : int(1-y)})
+                
+        response = {
+            "output" : output,
+            "meta_data" : get_meta_data(eula)
+        }
+
+        return response
+    
+    return predict_method
 
 def bert_predict(eula):
   """
