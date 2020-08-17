@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="container">
-    <!-- Upload form. Note enctype attribute! -->
-    <form action="{% url 'prediction'%}" method="POST" id="eula-form" enctype="multipart/form-data">
+    <!-- Upload form. Note enctype attribute! action="{% url 'prediction'%}" method="POST" -->
+    <form  id="eula-form" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row">
             <div class="col-25">
@@ -17,7 +17,7 @@
                 {% endfor %}
                 </select>
                 <!--
-                <input list="models" id="model" name="model_namem" placeholder="Your model...">
+                <input list="models" id="model" name="model_name" placeholder="Your model...">
                     <datalist id="models">		
                     {% for model in models %}
                         <option value="{{ model }}">
@@ -36,7 +36,7 @@
                 </textarea>
                 <div class="row prediction-file">
                     <div class="col-25">
-                            From file                                          
+                        From file                                          
                     </div>
                     <div class="col-27">
                         {{ form.docfile.errors }}
@@ -57,10 +57,93 @@
                 <input type="text" id="prediction" name="prediction" placeholder="Output..." value="{{ output }}">
             </div>
         </div>
-            
         <div class="row">
             <input type="submit" id="submit-boutton" value="Submit"/>
         </div>
     </form>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != "") {
+            var cookies = document.cookie.split(";");
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == name + "=") {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $(document).ready(function(){
+        $.ajaxSetup({
+            headers: {"X-CSRFToken": getCookie("csrftoken") }
+        });
+    });
+
+    $('#id_docfile').change(handleFileSelect);
+
+    var data_dic = {};
+
+    function createReaderHandler(name) {
+        return function(ev) {
+            data_dic[name] = ev.target.result;
+        };
+        console.log(data_dic)
+    }
+
+    function handleFileSelect(ev) {
+        console.log(data_dic, "============")
+        console.log(ev.target.files, "============")
+        var files = ev.target.files; // FileList object
+        // Loop through the FileList
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i],
+                name = file.name || file.fileName,
+                reader = new FileReader();
+            reader.onload = createReaderHandler(name);
+            reader.readAsText(file);
+        }
+    }
+
+    $(document).on('submit', '#eula-form', function(){ 
+
+        console.log(data_dic, "11111111111111111")
+        console.log($(this).serialize())
+        $.ajax({ 
+            type: "POST", 
+            url: 'prediction', 
+            data: {'form': $(this).serialize(), 'other' : data_dic}, 
+            context: this, 
+            beforeSend: function(xhr){
+                xhr.setRequestHeader("X-CSRFToken", $('input[name=csrfmiddlewaretoken]').val());
+            },
+            success: function(data, status) {
+                $("#eula-form").trigger("reset"); 
+                console.log(data)
+                //data = JSON.parse(data)
+                $("#eula-textarea").val(data['content'] + "\n"+data["output"])
+                $("#message").text(data["message"] + "ff")
+                console.log($("#prediction").val(), "============")
+                ///if(data["succes"]){
+                    console.log($("#prediction"), data["output"])
+                    $("#prediction").val(data["output"] + 'ff')
+                //}
+                console.log($("#prediction").val(), "============")
+                console.log(document.getElementById('prediction').value, "============")
+
+                //$("#form-group-prediction").prepend("")
+            }, 
+            error : function(xhr, errmsg, err) {
+                console.log(xhr.status + " : " + xhr.responseText); 
+            }
+        }); 
+        return false; 
+    });
+</script>
 {% endblock %}

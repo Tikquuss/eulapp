@@ -62,14 +62,42 @@ def my_bag_of_words(text, words_to_index, dict_size):
     return result_vector
 
 def mybag_predict(eula):
-    vec = my_bag_of_words(text_prepare(eula) , WORDS_TO_INDEX, DICT_SIZE)
-    output = classifier_mybag.predict([vec])[0]
-    return "EULA acceptable" if output == 1 else "EULA unacceptable"
+    if type(eula) == str :
+        eula = [eula]
+    else :
+        assert type(eula) == list
+
+    output = []
+    for clause in eula :
+        clause = text_prepare(clause)
+        vec = my_bag_of_words(clause , WORDS_TO_INDEX, DICT_SIZE)
+        a = classifier_mybag.predict([vec])[0]
+        output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
+    
+    from random import randint
+    response = {
+        "ouput" : output,
+        "meta_data" : [{text : randint(0, 50) for text in clause.split()} for clause in eula]
+    }
+    return response
 
 def tfidf_predict(eula):
-    vec = tfidf_vectorizer.transform([text_prepare(eula)])
-    output = classifier_tfidf.predict(vec)[0]
-    return "EULA acceptable" if output == 1 else "EULA unacceptable"
+    if type(eula) == str :
+        eula = [eula]
+    else :
+        assert type(eula) == list
+    output = []
+    for clause in eula :
+        vec = tfidf_vectorizer.transform([text_prepare(clause)])
+        a = classifier_tfidf.predict(vec)[0]
+        output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
+
+    from random import randint
+    response = {
+        "ouput" : output,
+        "meta_data" : [{text : randint(0, 50) for text in clause.split()} for clause in eula]
+    }
+    return response
 
 def bert_predict(eula):
   """
@@ -88,12 +116,3 @@ def bert_predict(eula):
   """
   # todo 
   return tfidf_predict(eula)
-
-def predict(model_name, eula):
-  
-  if model_name == "Bag of word":
-    return mybag_predict(eula)
-  elif model_name == "TD-IDF":
-    return tfidf_predict(eula)
-  elif model_name == "BERT":
-    return bert_predict(eula)
