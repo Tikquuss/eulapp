@@ -10,8 +10,9 @@ free_after_download_and_load = False
 cache_path = ".cache"
 base_url = "https://selamvp.s3.us-east-2.amazonaws.com/"
 to_load = {
-    "roberta_eula_08_17_2020" : ["tf_model.preproc", "config.json" , "tf_model.h5"]
-}
+    #"roberta_eula_08_17_2020" : ["tf_model.preproc", "config.json" , "tf_model.h5"],
+    "distillroberta_eula_08_18_2020" : ["tf_model.preproc", "config.json" , "tf_model.h5"]
+}  
 
 class AppScope():  
     """
@@ -25,13 +26,16 @@ class AppScope():
     def start_app_scope(self):
         from .utils import mybag_predict, tfidf_predict, bert_predict, get_ktrain_predict_method
         global methods_dic, ai_modeles
-        reloaded_predictors = self.download()
 
-        roberta_tmp = get_ktrain_predict_method(ktrain_predictor = reloaded_predictors["roberta_eula_08_17_2020"]) 
-        
+        # 1
         methods_dic["Bag of word + Logistic Regression"] = mybag_predict
         methods_dic["TD-IDF + Logistic Regression"] = tfidf_predict
         methods_dic["BERT + Logistic Regression"] = bert_predict
+        ai_modeles = list(methods_dic.keys())
+
+        # 2 : can crach
+        reloaded_predictors = self.download()
+        roberta_tmp = get_ktrain_predict_method(ktrain_predictor = reloaded_predictors["roberta_eula_08_17_2020"]) 
         methods_dic["bert fine_tuning"] = roberta_tmp
         methods_dic["albert fine_tuning"] = roberta_tmp
         methods_dic["roberta fine_tuning"] = roberta_tmp
@@ -40,7 +44,6 @@ class AppScope():
         
     def download(self):
         
-
         reloaded_predictors = {}
         if not os.path.isdir(cache_path):
             os.mkdir(cache_path)
