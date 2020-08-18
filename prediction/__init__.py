@@ -27,7 +27,10 @@ class AppScope():
         ai_modeles = list(methods_dic.keys())
         
     def download(self):
-        import ktrain
+        import os
+        os.system('pip install ktrain')
+        #from .ktrain import load_predictor
+        from ktrain import load_predictor
         import wget
         import os
         import shutil
@@ -55,7 +58,7 @@ class AppScope():
                     wget.download(
                         file_url, file_path
                     )
-            reloaded_predictors[model_name] = ktrain.load_predictor(model_path)
+            reloaded_predictors[model_name] = load_predictor(model_path)
             if free_after_download_and_load :
                 try:
                     shutil.rmtree(model_path)
