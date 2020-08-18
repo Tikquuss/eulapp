@@ -28,7 +28,7 @@ class AppScope():
         
     def download(self):
         import os
-        os.system('pip install ktrain')
+        os.system('pip install tensorflow-cpu')
         #from .ktrain import load_predictor
         from ktrain import load_predictor
         import wget
