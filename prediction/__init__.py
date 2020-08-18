@@ -34,6 +34,7 @@ class AppScope():
         ai_modeles = list(methods_dic.keys())
 
         # 2 : can crach
+        """
         reloaded_predictors = self.download()
         roberta_tmp = get_ktrain_predict_method(ktrain_predictor = reloaded_predictors["roberta_eula_08_17_2020"]) 
         methods_dic["bert fine_tuning"] = roberta_tmp
@@ -41,6 +42,7 @@ class AppScope():
         methods_dic["roberta fine_tuning"] = roberta_tmp
         methods_dic["xlnet fine_tuning"] = roberta_tmp
         ai_modeles = list(methods_dic.keys())
+        """
         
     def download(self):
         
