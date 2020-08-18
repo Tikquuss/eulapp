@@ -27,6 +27,7 @@ class AppScope():
         ai_modeles = list(methods_dic.keys())
         
     def download(self):
+        """
         import os
         try :
             os.system('pip install tensorflow-cpu')
@@ -36,6 +37,7 @@ class AppScope():
             os.system('pip install ktrain')
         except :
             pass
+        """
         #from .ktrain import load_predictor
         from ktrain import load_predictor
         import wget
