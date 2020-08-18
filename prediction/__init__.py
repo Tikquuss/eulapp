@@ -1,6 +1,29 @@
 ai_modeles = []
 methods_dic = {}
 
+from ktrain import load_predictor
+import wget
+import os
+import shutil
+        
+free_after_download_and_load = False
+cache_path = ".cache"
+base_url = "https://selamvp.s3.us-east-2.amazonaws.com/"
+to_load = {
+    "roberta_eula_08_17_2020" : ["tf_model.preproc", "config.json" , "tf_model.h5"]
+}
+
+import threading 
+class DowloadThread(threading.Thread):
+   def __init__(self, threadID, file_url, file_path):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.file_url = file_url
+        self.file_path = file_path
+
+   def run(self):
+       wget.download(self.file_url, self.file_path)
+
 class AppScope():  
     """
     This class allows to load all models at the beginning of the application, 
@@ -27,46 +50,26 @@ class AppScope():
         ai_modeles = list(methods_dic.keys())
         
     def download(self):
-        """
-        import os
-        try :
-            os.system('pip install tensorflow-cpu')
-        except :
-            pass
-        try :
-            os.system('pip install ktrain')
-        except :
-            pass
-        """
-        #from .ktrain import load_predictor
-        from ktrain import load_predictor
-        import wget
-        import os
-        import shutil
-        
-        free_after_download_and_load = False
-        cache_path = ".cache"
-        base_url = "https://selamvp.s3.us-east-2.amazonaws.com/"
-        to_load = {
-            "roberta_eula_08_17_2020" : ["tf_model.preproc", "config.json" , "tf_model.h5"]
-        }
-
         reloaded_predictors = {}
         if not os.path.isdir(cache_path):
             os.mkdir(cache_path)
-        print(cache_path, "cache_path")
+        print("cache_path : ", cache_path)
         for model_name, files in to_load.items():
             model_path = os.path.join(cache_path, model_name)
-            print(model_path, "model_path")
+            print("model_path : ", model_path)
             if not os.path.isdir(model_path):
                 os.mkdir(model_path) 
             for file_name in files :
                 file_path = os.path.join(model_path, file_name)
                 file_url = os.path.join(base_url, model_name, file_name).replace("\\", "/")
                 if not os.path.isfile(file_path):
+                    """
                     wget.download(
                         file_url, file_path
                     )
+                    """
+                    DowloadThread(threadID = file_path, file_url = file_url, file_path = file_path).start()
+                   
             reloaded_predictors[model_name] = load_predictor(model_path)
             if free_after_download_and_load :
                 try:
