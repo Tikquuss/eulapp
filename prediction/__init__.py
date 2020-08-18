@@ -1,5 +1,6 @@
 ai_modeles = []
 methods_dic = {}
+reloaded_predictors = {}
 
 from ktrain import load_predictor
 import wget
@@ -14,15 +15,25 @@ to_load = {
 }
 
 import threading 
-class DowloadThread(threading.Thread):
-   def __init__(self, threadID, file_url, file_path):
+class DownloadThread(threading.Thread):
+    def __init__(self, threadID, file_url, file_path, model_name, model_path):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.file_url = file_url
         self.file_path = file_path
+        self.model_name = model_name
+        self.model_path = model_path
 
-   def run(self):
-       wget.download(self.file_url, self.file_path)
+    def run(self):
+        global reloaded_predictors, free_after_download_and_load 
+
+        wget.download(self.file_url, self.file_path)
+        reloaded_predictors[self.model_name] = load_predictor(self.model_path)
+        if free_after_download_and_load :
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError:
+                pass
 
 class AppScope():  
     """
@@ -36,7 +47,12 @@ class AppScope():
     def start_app_scope(self):
         from .utils import mybag_predict, tfidf_predict, bert_predict, get_ktrain_predict_method
         global methods_dic, ai_modeles
-        reloaded_predictors = self.download()
+        global reloaded_predictors
+        
+        threads = self.download()
+
+        for t in threads :
+            t.join()
 
         roberta_tmp = get_ktrain_predict_method(ktrain_predictor = reloaded_predictors["roberta_eula_08_17_2020"]) 
         
@@ -50,7 +66,7 @@ class AppScope():
         ai_modeles = list(methods_dic.keys())
         
     def download(self):
-        reloaded_predictors = {}
+        threads = []
         if not os.path.isdir(cache_path):
             os.mkdir(cache_path)
         print("cache_path : ", cache_path)
@@ -68,13 +84,14 @@ class AppScope():
                         file_url, file_path
                     )
                     """
-                    DowloadThread(threadID = file_path, file_url = file_url, file_path = file_path).start()
-                   
-            reloaded_predictors[model_name] = load_predictor(model_path)
-            if free_after_download_and_load :
-                try:
-                    shutil.rmtree(model_path)
-                except OSError:
-                    pass
-                        
-        return reloaded_predictors                
+                    t = DownloadThread(
+                        threadID = file_path, 
+                        file_url = file_url, 
+                        file_path = file_path,
+                        model_name = model_name, 
+                        model_path = model_path
+                    )
+                    t.start()
+                    threads.append(t)
+
+        return threads                       
