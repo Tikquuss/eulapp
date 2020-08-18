@@ -9,6 +9,7 @@ import json, os, pickle
 import PyPDF2
 import docx
 import randomcolor
+from threading import Thread
 
 from .forms import DocumentForm, supported_extension 
 from . import AppScope, ai_modeles
@@ -20,7 +21,9 @@ def app_scope(request):
     see prediction.__init__.AppScope class
     """
     app = AppScope()
-    app.start_app_scope() 
+    #app.start_app_scope() 
+    app_thead = Thread(target = app.start_app_scope)
+    app_thead.start()
     return redirect('home')
 
 def home(request):
@@ -54,7 +57,7 @@ def prediction_interface(request):
 def prediction(request):
     """Prediction view"""
 
-    template_name = "prediction/prediction.html"
+    #template_name = "prediction/prediction.html"
     context = {}
     from . import ai_modeles
     context["models"] = ai_modeles
