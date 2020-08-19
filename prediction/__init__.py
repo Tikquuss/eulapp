@@ -59,9 +59,20 @@ class AppScope():
                 file_path = os.path.join(model_path, file_name)
                 file_url = os.path.join(base_url, model_name, file_name).replace("\\", "/")
                 if not os.path.isfile(file_path):
+                    # 1
                     wget.download(
                         file_url, file_path
                     )
+
+                    # 2
+                    """
+                    import requests
+                    response = requests.get(file_url, stream = True)
+                    dest_file = open(file_path, "wb")
+                    for chunk in response.iter_content(chunk_size=1024):
+                        dest_file.write(chunk)
+                    dest_file.close()
+                    """
             reloaded_predictors[model_name] = ktrain.load_predictor(model_path)
             if free_after_download_and_load :
                 try:
