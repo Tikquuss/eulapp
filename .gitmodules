@@ -1,0 +1,3 @@
+[submodule "eulascript"]
+	path = eulascript
+	url = https://github.com/Tikquuss/eulascript
