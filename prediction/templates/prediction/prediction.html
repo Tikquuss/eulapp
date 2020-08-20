@@ -112,28 +112,22 @@
                                     -->     
                                 </div>
                                 <style>
-                                    .fa-file {
+                                    .fa-file, #massage {
                                         padding-top: 2%;
                                     }
                                 </style>
                                 <div class="col-md-3">
                                     <div class="row">
-                                        <div class="col-md-2 fa-file" id=".txt">
+                                        <div class="col-md-4 fa-file" id=".txt">
                                             <span class="fas fa-file-alt fa-lg"></span>
                                         </div>  
-                                        <div class="col-md-2 fa-file" id="docx,.doc">
+                                        <div class="col-md-4 fa-file" id="docx,.doc">
                                             <span class="fas fa-file-word fa-lg"></span> 
                                         </div>
-                                        <div class="col-md-2 fa-file" id=".pdf">
+                                        <div class="col-md-4 fa-file" id=".pdf">
                                             <span class="fas fa-file-pdf fa-lg"></span> 
                                         </div>
-                                        <div class="col-md-6">
-                                            
-                                            <p id="message" style="color: red;" class="fas"></p>  
-                                            
-                                        </div>
                                     </div> 
-                                    
                                 </div>
                                 <style>
                                     #submit-boutton {
@@ -148,6 +142,10 @@
                                     </div>
                                 </div>
                                 <div class="col-md-2"></div>
+                            </div>
+                            <div class="row">
+                                <div id="message" style='color: red;' class="col-md-12"> 
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -212,17 +210,27 @@
         </div>
         {% endfor %}
         -->
+        <style>
+            #clonable_parent{
+                max-height: 1000px;
+                overflow-y: scroll;
+            }
+
+            blockquote {
+                max-height: 700px;
+                overflow-y: scroll;
+            }
+        </style>
         <div id="clonable_parent">
             <div class="clonable">
                 <div class="row">
                     <div class="col-md-1"></div>
                     <div class="col-md-10">
-                        <blockquote contenteditable="true">
-                            <p class="add"></p>
-                        </blockquote>
+                        <blockquote class="add"></blockquote>
                     </div>
                     <div class="col-md-1"></div>
                 </div>
+                
                 <div class="row prediction-row">
                     <div class="col-md-1"></div>
                     <div class="col-md-2">
@@ -250,6 +258,63 @@
         </div>
     </section>
     
+    <!-- Modal -->
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Roboto:300,400);
+
+        /** SPINNER CREATION **/
+    
+        .loader {
+            position: relative;
+            text-align: center;
+            margin: 15px auto 35px auto;
+            z-index: 9999;
+            display: block;
+            width: 80px;
+            height: 80px;
+            border: 10px solid rgba(0, 0, 0, .3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+            -webkit-animation: spin 1s ease-in-out infinite;
+        }
+    
+        @keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+    
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+    
+        /** MODAL STYLING **/
+    
+        .modal-content {
+            border-radius: 0px;
+            box-shadow: 0 0 20px 8px rgba(0, 0, 0, 0.7);
+        }
+    
+        .modal-backdrop.show {
+            opacity: 0.75;
+        }       
+    </style>
+    <div class="modal fade" id="loadMe" tabindex="-1" role="dialog" aria-labelledby="loadMeLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="loader"></div>
+                    <div clas="loader-txt">
+                        <p>In process</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function getCookie(name) {
             var cookieValue = null;
@@ -271,6 +336,7 @@
         var clonable_node, clonable_node_temp, parentNode;
 
         $(document).ready(function(){
+                    
             /*1*/
             clonable_node_temp = document.getElementsByClassName('clonable')[0]
             clonable_node = clonable_node_temp.cloneNode(deep = true)
@@ -305,20 +371,28 @@
             });
         });
 
-        // The name of the file appear on select
+        //*
         $("#id_docfile").on("change", function() {
+            // The name of the file appear on select
+            /*1*/
+            /*
             var fileName = $(this).val().split("\\").pop();
             $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+            /*/
+        
         });
-                                    
+        //*/
+
         $(".fa-file").on("click", function(ev) {
             node = document.getElementById("id_docfile")
             b = ev.target.id
+
+            // todo : fix
+            /*
             if (b != ""){
                 node.setAttribute('accept', b)
-                a = node.getAttribute('accept')
-                console.log("========", a, b)
             }
+            //*/
             $("#id_docfile").click()
             document.getElementById("id_docfile").setAttribute('accept', accept_extension);
         });
@@ -329,9 +403,23 @@
 
             /*2*/
             parentNode.innerHTML = "";
+
+            /*3*/
+            $("#loadMe").modal({
+                backdrop: "static", //remove ability to close modal with click
+                keyboard: false, //remove option to close with keyboard
+                show: true //Display loader!
+            });
         }
 
-    
+        function afterReceive(){
+            /*1*/
+            var min_t = 450
+            setTimeout(function() {
+      		    $("#loadMe").modal("hide");
+    	    }, min_t);
+        }
+
         $(document).on('submit', '#eula-form', function(){ 
     
             var new_data = new FormData();
@@ -352,16 +440,15 @@
                 data: new_data, 
                 processData: false,
                 contentType: false,
+
                 success: function(data, status) {
                     
                     //$("#eula-textarea").val(data['content'])
-                    //$("#message").text(data["message"])
+                    
                     document.getElementById("message").innerText = data["message"]
                     
                     htmls = data["html"]
                     if(htmls){
-                        //parentNode = document.getElementById("clonable_parent")
-                        //clonable_node = document.getElementsByClassName('clonable')[0]
                         for (html of htmls){
                             if(html[1] != ""){
                                 let clonedNode = clonable_node.cloneNode(deep = true)
@@ -376,9 +463,13 @@
                         }
                         clonable_node_temp.style.display = "none"
                     }
+                    
+                    afterReceive()
                 }, 
                 error : function(xhr, errmsg, err) {
                     console.log(xhr.status + " : " + xhr.responseText); 
+                    
+                    afterReceive()
                 }
             }); 
             return false; 

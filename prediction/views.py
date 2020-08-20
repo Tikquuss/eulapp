@@ -12,7 +12,7 @@ import randomcolor
 from threading import Thread
 
 from .forms import DocumentForm, supported_extension 
-from . import AppScope, ai_modeles
+from . import AppScope
 
 def app_scope(request):
     """
@@ -21,7 +21,6 @@ def app_scope(request):
     see prediction.__init__.AppScope class
     """
     app = AppScope()
-    #app.start_app_scope() 
     app_thead = Thread(target = app.start_app_scope)
     app_thead.start()
     return redirect('home')
@@ -57,36 +56,34 @@ def prediction_interface(request):
 def prediction(request):
     """Prediction view"""
 
-    #template_name = "prediction/prediction.html"
     context = {}
     from . import ai_modeles
     context["models"] = ai_modeles
     context["succes"]= False
     context["at_home"] = True
-    #context["form"] = DocumentForm()
 
-    if request.method == 'POST':
-        print(request.POST)
-        print(request.FILES)
+    if request.method == 'POST':    
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
             try :
+
                 # From file
+
                 docfile = request.FILES['docfile']
-                print(docfile)
+                
                 if is_supported(file_name = str(docfile)) :
                     content = get_content(docfile)
                 else :
                     context["message"] = 'File type not supported.'
                     return JsonResponse(context)
-                    #return TemplateResponse(request, template_name, context)
 
             except MultiValueDictKeyError :
+                
                 # From text area
+                
                 content =  request.POST["eula"]
                 if not text_is_valid(text = content) :
                     context["message"] = 'Please fill in the text box or choose a file.'
-                    #return TemplateResponse(request, template_name, context)
                     return JsonResponse(context)
                 else :
                     content = [content]
@@ -94,7 +91,6 @@ def prediction(request):
                 model_name = request.POST["model_name"]
             except MultiValueDictKeyError :
                 context["message"] = 'Choose a model.'
-                #return TemplateResponse(request, template_name, context)
                 return JsonResponse(context)
             
             try :
@@ -120,8 +116,6 @@ def prediction(request):
             context["succes"] = True
             context["output"] = output
             context["message"] = ""
-            print(context)
-            #return TemplateResponse(request, template_name, context)
             return JsonResponse(context)
     else :
         return home(request)        
@@ -132,21 +126,20 @@ def get_content(document):
         pdfReader = PyPDF2.PdfFileReader(document)
         content = [pdfReader.getPage(page).extractText() for page in range(pdfReader.numPages)]
         content = [text for text in content if text_is_valid(text = text)]
-        #content = '\n'.join(content)
+        
     elif extension in [".doc", ".docx"] :
         doc = docx.Document(document)
         content = doc.paragraphs
-        content = [para.text for para in content if text_is_valid(text = para.text)][:3]
-        #content = '\n'.join(content)
+        content = [para.text for para in content if text_is_valid(text = para.text)]
+        
     else :
         content = document.read().decode('utf-8')
-        content = content if text_is_valid(text = content) else ""
-        content = content.split("\n")
+        content = content.split("\n") if text_is_valid(text = content) else []
 
     return content
 
 def is_supported(file_name : str):
-    _, extension = os.path.splitext(file_name) # file_name.split(".")[-1]
+    _, extension = os.path.splitext(file_name) 
     if extension in supported_extension :
         return True
     else :
@@ -170,8 +163,13 @@ def parse_to_html(text, meta_data):
 
     _, color_list = get_color_list(n_element = len(collection.keys()), color_list = ["red", "blue", "orange"])
 
+    # No coloring of texts of zero frequency
+    collection[0] = []
+    
     html_dico = {}
+    
     for index, word_list in enumerate(list(collection.values())) :
+        
         for word in word_list :
             try :
                 html_dico[word]
@@ -212,6 +210,7 @@ def handle_uploaded_file(filestream, destination_path : str):
         for chunk in filestream.chunks():
             destination_file.write(chunk)
 
+"""
 import random 
 import matplotlib.pyplot as plt 
 
@@ -237,3 +236,4 @@ def generate_colors(n : int):
         rgb_values.append((r,g,b)) 
 
     return rgb_values, hex_values 
+"""

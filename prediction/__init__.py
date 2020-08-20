@@ -30,11 +30,11 @@ class AppScope():
         # 1
         methods_dic["Bag of word + Logistic Regression"] = mybag_predict
         methods_dic["TD-IDF + Logistic Regression"] = tfidf_predict
-        methods_dic["BERT + Logistic Regression"] = bert_predict
         ai_modeles = list(methods_dic.keys())
 
-        # 2 : can crach
+        # 2 : can crash
         """
+        methods_dic["BERT + Logistic Regression"] = bert_predict
         reloaded_predictors = self.download()
         roberta_tmp = get_ktrain_predict_method(ktrain_predictor = reloaded_predictors["roberta_eula_08_17_2020"]) 
         methods_dic["bert fine_tuning"] = roberta_tmp

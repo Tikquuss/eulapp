@@ -15,12 +15,19 @@ STOPWORDS = set(stopwords.words('english'))
 production = pickle.load(open(r"prediction/production.pth", 'rb'))
 
 #requirements 
+
+# Bag of word
+words_counts = production["words_counts"]
 WORDS_TO_INDEX = production["WORDS_TO_INDEX"]
 DICT_SIZE = production["DICT_SIZE"]
 classifier_mybag = production["classifier_mybag"]
+
+# TF-IDF 
 tfidf_vectorizer = production["tfidf_vectorizer"]
 classifier_tfidf = production["classifier_tfidf"]
-classifier_bert = production["classifier_bert"]
+
+# BERT
+#classifier_bert = production["classifier_bert"]
 #max_input_length = production["max_input_length"]
 
 # For DistilBERT:
@@ -63,9 +70,11 @@ def my_bag_of_words(text, words_to_index, dict_size):
 
 
 # todo
-def get_meta_data(eula):
-    from random import randint
-    return [{text : randint(0, 5) for text in clause.split()} for clause in eula]
+def get_meta_data(eula, vocab = None):
+    if not vocab :
+        vocab = tfidf_vectorizer.vocabulary_
+
+    return [{text : vocab.get(text.lower(), 0) for text in clause.split()} for clause in eula]
     
 def mybag_predict(eula):
     if type(eula) == str :
@@ -77,13 +86,12 @@ def mybag_predict(eula):
     for clause in eula :
         clause = text_prepare(clause)
         vec = my_bag_of_words(clause , WORDS_TO_INDEX, DICT_SIZE)
-        a = classifier_mybag.predict([vec])[0]
-        #output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
-        output.append({"acceptability" : int(a), "unacceptability" : int(1 - a)})
+        y = classifier_mybag.predict_proba([vec])[0]
+        output.append({"acceptability" : float(y[1]), "unacceptability" : float(y[0]) })
     
     response = {
         "output" : output,
-        "meta_data" : get_meta_data(eula)
+        "meta_data" : get_meta_data(eula, vocab = words_counts)
     }
     return response
 
@@ -95,14 +103,12 @@ def tfidf_predict(eula):
     output = []
     for clause in eula :
         vec = tfidf_vectorizer.transform([text_prepare(clause)])
-        a = classifier_tfidf.predict(vec)[0]
-        
-        #output.append("EULA acceptable" if a == 1 else "EULA unacceptable")
-        output.append({"acceptability" : int(a), "unacceptability" : int(1 - a)})
+        y = classifier_tfidf.predict_proba(vec)[0]        
+        output.append({"acceptability" : float(y[1]), "unacceptability" : float(y[0])})
 
     response = {
         "output" : output,
-        "meta_data" : get_meta_data(eula)
+        "meta_data" : get_meta_data(eula, vocab = tfidf_vectorizer.vocabulary_)
     }
     return response
 
@@ -147,4 +153,4 @@ def bert_predict(eula):
   return "EULA acceptable" if output == 1 else "EULA unacceptable"
   """
   # todo 
-  return tfidf_predict(eula)
+  return mybag_predict(eula)
