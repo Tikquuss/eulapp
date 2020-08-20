@@ -1,12 +1,14 @@
-Use the application by directly following this link : https://whispering-cove-26674.herokuapp.com/
+Use the application by directly following this link : https://eulapp.herokuapp.com/
 
 # Dependencies
 * django
-* torch
+* sklearn
 * numpy
 * nltk
 * numpy
-* transformers
+* ktrain
+* pandas
+* ...
 
 # User's Guide
 ## Setting up dependencies
@@ -36,7 +38,3 @@ You can also adapt the previous parameters by following the steps in this [noteb
 python manage.py runsever
 ```
 http://localhost:8000/
-
-## Home
-
-<img src="media/home.png"/>
