@@ -22,7 +22,7 @@
                         <div class="carousel-item">
                             <h3 class="section-subheading text-muted">Fill the text box below with your license information, or select it from a pdf, docx, txt or markdown file.</h3>
                         </div>
-                        <div class="carousel-item">
+                        <div class="carousel-item"> 
                             <h3 class="section-subheading text-muted">Leave the rest to our model</h3>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                    <form id="eula-form" name="sentMessage" novalidate="novalidate"
                     action="{% url 'prediction'%}" method="POST" enctype="multipart/form-data"
                 > 
-            -->
+                -->
                 
                 <form id="eula-form" name="sentMessage" novalidate="novalidate" enctype="multipart/form-data"
                 >
@@ -95,6 +95,10 @@
                                 .to_pad {
                                     padding :0.5em !important;
                                 }   
+
+                                .custom-file-label {
+                                    color : black /*#fed136*/;
+                                }
                             </style>
 
                             <div class="row align-items-stretch mb-5 to_pad">
@@ -112,11 +116,11 @@
                                     -->     
                                 </div>
                                 <style>
-                                    .fa-file, #massage {
-                                        padding-top: 2%;
+                                    .fa-file, #massage, .btn-submit {
+                                        padding-top: 6px;
                                     }
                                 </style>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="row">
                                         <div class="col-md-4 fa-file" id=".txt">
                                             <span class="fas fa-file-alt fa-lg"></span>
@@ -130,18 +134,53 @@
                                     </div> 
                                 </div>
                                 <style>
-                                    #submit-boutton {
-                                        height: 50px !important; 
-                                        padding-top :6%;
+
+                                    /*@media only screen and (min-width: 780px) {*/
+                                        #submit-boutton {
+                                            height: 50px !important; 
+                                            padding-top :10px;
+                                        }
+                                    /*}*/
+
+                                    .checkbox-coloration {
+                                        padding-top: 14px;
+                                    }
+                                    
+                                    .tooltip-inner {
+                                        max-width: 350px !important;
+                                        /* If max-width does not work, try using width instead */
+                                        width: 350px !important; 
                                     }
                                 </style>
+                                <div class="col-md-3">
+                                    <!--
+                                    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+                                    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+                                    <div class="checkbox">
+                                        <label>
+                                          <input type="checkbox" name="coloration" id="toggle-checkbox" data-toggle="toggle" data-on="Enabled" data-off="Disabled">
+                                          
+                                        </label>
+                                    </div>
+                                    --> 
+                                    <div class="custom-control custom-checkbox checkbox-coloration">
+                                        <input type="checkbox" name="coloration" class="custom-control-input" id="customCheck1">
+                                        <label class="custom-control-label" for="customCheck1" 
+                                        data-toggle="tooltip"
+                                        data-placement="top" html="true" title="Enabled text coloring"
+                                        trigger = "click | hover | focus | manual"
+                                        >
+                                        </label>
+                                    </div>
+                                </div>
                                 <div class="col-md-2">
-                                    <div class="text-center">
+                                    <div class="text-center btn-submit">
                                         <div id="success"></div>
                                         <input class="btn btn-primary btn-xl text-uppercase" type="submit" id="submit-boutton" value="Submit"/>
                                     </div>
                                 </div>
-                                <div class="col-md-2"></div>
+                                <div></div>
                             </div>
                             <div class="row">
                                 <div id="message" style='color: red;' class="col-md-12"> 
@@ -375,13 +414,13 @@
         $("#id_docfile").on("change", function() {
             // The name of the file appear on select
             /*1*/
-            /*
             var fileName = $(this).val().split("\\").pop();
-            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
-            /*/
-        
+            //$(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+            if(fileName != ""){
+                document.getElementsByClassName("custom-file-label")[0].innerText = fileName
+            }
         });
-        //*/
+        
 
         $(".fa-file").on("click", function(ev) {
             node = document.getElementById("id_docfile")
@@ -410,14 +449,19 @@
                 keyboard: false, //remove option to close with keyboard
                 show: true //Display loader!
             });
+
+            /*4*/
+            setTimeout(function() {
+                document.getElementsByClassName("custom-file-label")[0].innerText = "From file"
+    	    }, 50);
         }
 
+        var min_t = 700//450
         function afterReceive(){
             /*1*/
-            var min_t = 450
             setTimeout(function() {
       		    $("#loadMe").modal("hide");
-    	    }, min_t);
+    	    }, 50);
         }
 
         $(document).on('submit', '#eula-form', function(){ 
@@ -443,28 +487,42 @@
 
                 success: function(data, status) {
                     
-                    //$("#eula-textarea").val(data['content'])
-                    
-                    document.getElementById("message").innerText = data["message"]
-                    
-                    htmls = data["html"]
-                    if(htmls){
-                        for (html of htmls){
-                            if(html[1] != ""){
-                                let clonedNode = clonable_node.cloneNode(deep = true)
-                                txt_node = clonedNode.getElementsByClassName('add')[0]
-                                txt_node.innerHTML = html[1]
-                                prediction_node = clonedNode.getElementsByClassName('prediction')
-                                output = html[0] 
-                                prediction_node[0].setAttribute("value", output["acceptability"])
-                                prediction_node[1].setAttribute("value", output["unacceptability"])
-                                parentNode.appendChild(clonedNode)
-                            }
+                    setTimeout(function() {
+      		    
+                        document.getElementById("eula-form").reset();
+
+                        if(data["from_text_area"]){
+                            $("#eula-textarea").val(data['content'])
                         }
-                        clonable_node_temp.style.display = "none"
-                    }
-                    
-                    afterReceive()
+
+                        if(data["coloration"]){
+                            $("#customCheck1").prop("checked", data["coloration"]);
+                            //$('#toggle-checkbox').bootstrapToggle('on')
+                        }else {
+                            //$('#toggle-checkbox').bootstrapToggle('off')
+                        }   
+
+                        document.getElementById("message").innerText = data["message"]
+                        
+                        htmls = data["html"]
+                        if(htmls){
+                            for (html of htmls){
+                                if(html[1] != ""){
+                                    let clonedNode = clonable_node.cloneNode(deep = true)
+                                    txt_node = clonedNode.getElementsByClassName('add')[0]
+                                    txt_node.innerHTML = html[1]
+                                    prediction_node = clonedNode.getElementsByClassName('prediction')
+                                    output = html[0] 
+                                    prediction_node[0].setAttribute("value", output["acceptability"])
+                                    prediction_node[1].setAttribute("value", output["unacceptability"])
+                                    parentNode.appendChild(clonedNode)
+                                }
+                            }
+                            clonable_node_temp.style.display = "none"
+                        }
+                        
+                        afterReceive()
+                    }, min_t);
                 }, 
                 error : function(xhr, errmsg, err) {
                     console.log(xhr.status + " : " + xhr.responseText); 

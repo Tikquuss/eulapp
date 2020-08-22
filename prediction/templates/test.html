@@ -30,8 +30,26 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav text-uppercase ml-auto">
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="{% url 'home'%}"><p></p>Home</a></li>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="{% url 'about'%}"><p></p>About</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link js-scroll-trigger header-link" href="{% url 'home'%}"
+                            {% if at_prediction %} 
+                                style="color: #e6b301;"
+                            {% endif %}
+                            >
+                                <p></p>
+                                 Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link js-scroll-trigger header-link" href="{% url 'about'%}"
+                            {% if at_prediction %} 
+                                style="color: #e6b301;"
+                            {% endif %}
+                            >
+                                <p></p>
+                                About
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

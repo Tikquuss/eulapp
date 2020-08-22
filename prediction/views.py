@@ -7,12 +7,14 @@ from django.utils.datastructures import MultiValueDictKeyError
 
 import json, os, pickle
 import PyPDF2
+import fitz
 import docx
 import randomcolor
 from threading import Thread
 
 from .forms import DocumentForm, supported_extension 
 from . import AppScope
+from .utils_eulascripts import text_is_valid, pyMuPDF_clauses_extraction
 
 def app_scope(request):
     """
@@ -44,7 +46,7 @@ def about(request):
 def prediction_interface(request):
     from . import ai_modeles
     context = {
-        "at_home" : True, 
+        "at_prediction" : True, 
         "succes": False, 
         "form" : DocumentForm,
         "message" : "",
@@ -60,10 +62,16 @@ def prediction(request):
     from . import ai_modeles
     context["models"] = ai_modeles
     context["succes"]= False
-    context["at_home"] = True
+    context["at_prediction"] = True
+    context["from_text_area"] = False
+    context["coloration"] = False
+    
+    doc_type, clauses = None, None
 
     if request.method == 'POST':    
+
         form = DocumentForm(request.POST, request.FILES)
+        
         if form.is_valid():
             try :
 
@@ -72,7 +80,13 @@ def prediction(request):
                 docfile = request.FILES['docfile']
                 
                 if is_supported(file_name = str(docfile)) :
-                    content = get_content(docfile)
+                    content, doc_type, clauses, join = get_content(docfile)
+                    context["content"] = join.join(content)
+
+                    if not text_is_valid(text = context["content"]) :
+                        context["message"] = 'Invalid file content'
+                        return JsonResponse(context)
+            
                 else :
                     context["message"] = 'File type not supported.'
                     return JsonResponse(context)
@@ -80,13 +94,16 @@ def prediction(request):
             except MultiValueDictKeyError :
                 
                 # From text area
-                
                 content =  request.POST["eula"]
+    
                 if not text_is_valid(text = content) :
                     context["message"] = 'Please fill in the text box or choose a file.'
                     return JsonResponse(context)
                 else :
+                    context["content"] = content
                     content = [content]
+                    context["from_text_area"] = True
+
             try :
                 model_name = request.POST["model_name"]
             except MultiValueDictKeyError :
@@ -94,49 +111,97 @@ def prediction(request):
                 return JsonResponse(context)
             
             try :
+                coloration = request.POST["coloration"]
+            except MultiValueDictKeyError:
+                coloration = False
+            context["coloration"] = coloration
+
+            try :
                 from . import methods_dic 
-                response = methods_dic[model_name](eula = content)
-                context["content"], context["html"] = [], []
-                for clause, output, meta_data in zip(content, response["output"], response["meta_data"]) :
+
+                if not clauses :
+                    clauses = convert_to_clauses(content, context["from_text_area"], doc_type)
+
+                clause_list = list(clauses.values())
+                response = methods_dic[model_name](eula = clause_list)
+
+                context["html"] = []
+                
+                for _, clause, output, meta_data in zip(list(clauses.keys()), clause_list, response["output"], response["meta_data"]) :
                     if text_is_valid(text = clause) :
-                        context["content"].append(clause)
-                        try :
+                        try :  
                             context["html"].append((
                                 output,
-                                parse_to_html(text = clause, meta_data = meta_data)
+                                parse_to_html(text = clause, meta_data = meta_data, with_coloration = coloration) 
                             ))
+                            
                         except AssertionError :
                             context["html"].append((output, clause))
                     else :
-                        context["content"].append("")
                         context["html"].append((output, ""))
+                        
             except KeyError:
-                output = ["No model name %s"%model_name ]
+                output = ["No model name %s"%model_name]
 
             context["succes"] = True
             context["output"] = output
             context["message"] = ""
+            
             return JsonResponse(context)
     else :
         return home(request)        
 
+def convert_to_clauses(content : list, from_text_area : bool = False, doc_type : str = None):
+
+    if doc_type in [".doc", ".docx"] :
+        return {i : clause for i, clause in enumerate(content)}
+    elif doc_type == ".pdf" :
+        return
+
+    a = " ".join(content).strip()
+    if from_text_area :
+        b = a.split("\r\n\r\n")
+    else :
+        b = a.split("\n\n")
+        
+    return {i : clause for i, clause in enumerate(b)}
+
+
+
 def get_content(document):
+
     _, extension = os.path.splitext(str(document))
+    clauses = None
+    join = " "
+
     if extension == ".pdf" :
+        """
         pdfReader = PyPDF2.PdfFileReader(document)
         content = [pdfReader.getPage(page).extractText() for page in range(pdfReader.numPages)]
         content = [text for text in content if text_is_valid(text = text)]
-        
+        """
+        destination_path = os.path.join("prediction", str(document))
+        handle_uploaded_file(filestream = document, destination_path = destination_path)
+        clauses = pyMuPDF_clauses_extraction(destination_path)
+        content = list(clauses.values())
+        os.remove(destination_path)
+
     elif extension in [".doc", ".docx"] :
         doc = docx.Document(document)
         content = doc.paragraphs
         content = [para.text for para in content if text_is_valid(text = para.text)]
+        clauses = {i : clause for i, clause in enumerate(content)}
+        
         
     else :
         content = document.read().decode('utf-8')
-        content = content.split("\n") if text_is_valid(text = content) else []
+        content = content if text_is_valid(text = content) else ""
+        join = "\n\n"
+        content = content.split(join)
+        
+        clauses = {i : clause for i, clause in enumerate(content)}
 
-    return content
+    return content, extension, clauses, join
 
 def is_supported(file_name : str):
     _, extension = os.path.splitext(file_name) 
@@ -145,41 +210,39 @@ def is_supported(file_name : str):
     else :
         return False
 
-def text_is_valid(text : str):
-    return text.strip().rstrip().replace("\n", "").replace("\r", "").replace("\t", "") # != ""
+def parse_to_html(text, meta_data, with_coloration = False):
 
-def parse_to_html(text, meta_data):
-
-    text_set = list(set(text.split()))
-    text_set = [word for word in text_set if word in meta_data.keys()]
-    collection = {}
-    for word in text_set :
-        freq = meta_data.get(word, 0)
-        try :
-            collection[freq] 
-            collection[freq].append(word)
-        except KeyError :
-            collection[freq] = [word]
-
-    _, color_list = get_color_list(n_element = len(collection.keys()), color_list = ["red", "blue", "orange"])
-
-    # No coloring of texts of zero frequency
-    collection[0] = []
-    
-    html_dico = {}
-    
-    for index, word_list in enumerate(list(collection.values())) :
-        
-        for word in word_list :
+    if with_coloration :
+        text_set = list(set(text.split()))
+        text_set = [word for word in text_set if word in meta_data.keys()]
+        collection = {}
+        for word in text_set :
+            freq = meta_data.get(word, 0)
             try :
-                html_dico[word]
-            except :
-                color = color_list[index].replace("'", "")
-                word_tmp = word.replace("<", "").replace(">", "") # to avoid bad template parsing
-                html_dico[word] = "<span style='background-color : " + color +" !important'>" + word_tmp + "</span>"
-            
-    text = " ".join(html_dico.get(word, word) for word in text.split())
+                collection[freq].append(word)
+            except KeyError :
+                collection[freq] = [word]
+
+        _, color_list = get_color_list(n_element = len(collection.keys()), color_list = ["red", "blue", "orange"])
+
+        # No coloring of texts of zero frequency
+        collection[0] = []
+        
+        html_dico = {}
+        
+        for index, word_list in enumerate(list(collection.values())) :
+            for word in word_list :
+                try :
+                    html_dico[word]
+                except :
+                    color = color_list[index].replace("'", "")
+                    word_tmp = word.replace("<", "").replace(">", "") # to avoid bad template parsing
+                    html_dico[word] = "<span style='background-color : " + color +" !important'>" + word_tmp + "</span>"
+                
+        text = " ".join(html_dico.get(word, word) for word in text.split())
+
     text = text.replace("\n", "<br />")
+
     return text 
 
 def get_color_list(n_element : int,
@@ -209,6 +272,8 @@ def handle_uploaded_file(filestream, destination_path : str):
     with open(destination_path, 'wb+') as destination_file:
         for chunk in filestream.chunks():
             destination_file.write(chunk)
+
+    return destination_path
 
 """
 import random 
