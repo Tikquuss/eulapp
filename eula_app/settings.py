@@ -25,6 +25,8 @@ SECRET_KEY = '4*0))(33($s+7y@5%-%zpid-a+bgk03=!_87aktg7)1ztp3s19'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+LOGIN_REDIRECT_URL = '/'
+
 ALLOWED_HOSTS = ['whispering-cove-26674.herokuapp.com', "eulapp.herokuapp.com", '127.0.0.1', 'localhost']
 
 
